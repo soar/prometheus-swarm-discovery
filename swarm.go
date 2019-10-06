@@ -10,7 +10,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/network"
@@ -18,6 +17,7 @@ import (
 	"github.com/docker/docker/client"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/util/strutil"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
