@@ -300,10 +300,13 @@ func discoverSwarm(prometheusContainerID string, outputFile string, discoveryTyp
 		scrapeTasks = append(scrapeTasks, scrapetask)
 	}
 
-	err = connectNetworks(allNetworks, prometheusContainerID)
-	if err != nil {
-		logger.Error("Could not connect container ,", prometheusContainerID, ": ", err)
+	if options.autoconnect {
+		err = connectNetworks(allNetworks, prometheusContainerID)
+		if err != nil {
+			logger.Error("Could not connect container ,", prometheusContainerID, ": ", err)
+		}
 	}
+
 	writeSDConfig(scrapeTasks, outputFile)
 }
 
@@ -344,6 +347,7 @@ type Options struct {
 	logLevel          string
 	output            string
 	clean             bool
+	autoconnect       bool
 }
 
 func main() {
@@ -360,6 +364,7 @@ func main() {
 	cmdDiscover.Flags().StringVarP(&options.output, "output", "o", "swarm-endpoints.json", "Output file that contains the Prometheus endpoints.")
 	cmdDiscover.Flags().BoolVarP(&options.clean, "clean", "c", true, "Disconnects unused networks from the Prometheus container, and deletes them.")
 	cmdDiscover.Flags().StringVarP(&options.discovery, "discovery", "d", "implicit", "Discovery time: implicit or explicit. Implicit scans all the services found while explicit scans only labeled services.")
+	cmdDiscover.Flags().BoolVarP(&options.autoconnect, "autoconnect", "a", true, "If true, the service will try to connect Prometheus container to the required networks automatically. If not, you should do this manually.")
 
 	var rootCmd = &cobra.Command{Use: "promswarm"}
 	rootCmd.AddCommand(cmdDiscover)
