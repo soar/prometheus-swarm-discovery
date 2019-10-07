@@ -55,7 +55,7 @@ imports:
   version: acd72ae1a7bf62ef37f69830531666548ce40907
   subpackages:
   - util/strutil
-- name: github.com/Sirupsen/logrus
+- name: github.com/sirupsen/logrus
   version: 10f801ebc38b33738c9d17d50860f484a0988ff5
 - name: github.com/spf13/cobra
   version: 5deb57bbca49eb370538fc295ba4b2988f9f5e09
