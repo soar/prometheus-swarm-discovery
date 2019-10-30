@@ -100,12 +100,7 @@ func writeSDConfig(scrapeTasks []scrapeTask, output string) {
 	}
 }
 
-func findPrometheusContainer(serviceName string) (string, error) {
-	cli, err := client.NewEnvClient()
-	if err != nil {
-		panic(err)
-	}
-
+func findPrometheusContainer(cli *client.Client, serviceName string) (string, error) {
 	taskFilters := filters.NewArgs()
 	taskFilters.Add("desired-state", string(swarm.TaskStateRunning))
 	taskFilters.Add("service", serviceName)
@@ -324,7 +319,8 @@ func discoveryProcess(cmd *cobra.Command, args []string) {
 
 	for {
 		time.Sleep(time.Duration(options.discoveryInterval) * time.Second)
-		prometheusContainerID, err := findPrometheusContainer(options.prometheusService)
+
+		prometheusContainerID, err := findPrometheusContainer(dockerClient, options.prometheusService)
 		if err != nil {
 			logger.Warn(err)
 			continue
