@@ -44,12 +44,7 @@ func allocateIP(netCIDR *net.IPNet) string {
 	return allocIP.String()
 }
 
-func connectNetworks(networks map[string]swarm.Network, containerID string) error {
-	cli, err := client.NewEnvClient()
-	if err != nil {
-		return err
-	}
-
+func connectNetworks(cli *client.Client, networks map[string]swarm.Network, containerID string) error {
 	prometheusContainer, err := cli.ContainerInspect(context.Background(), containerID)
 	if err != nil {
 		return err
@@ -127,9 +122,7 @@ func findPrometheusContainer(serviceName string) (string, error) {
 	return promTasks[0].Status.ContainerStatus.ContainerID, nil
 }
 
-func cleanNetworks(prometheusContainerID string) {
-	cli, err := client.NewEnvClient()
-
+func cleanNetworks(cli *client.Client, prometheusContainerID string) {
 	networkFilters := filters.NewArgs()
 	networkFilters.Add("driver", "overlay")
 	networks, err := cli.NetworkList(context.Background(), types.NetworkListOptions{Filters: networkFilters})
@@ -230,12 +223,7 @@ func taskLabels(task swarm.Task, serviceIDMap map[string]swarm.Service) map[stri
 	return labels
 }
 
-func discoverSwarm(prometheusContainerID string, outputFile string, discoveryType string) {
-	cli, err := client.NewEnvClient()
-	if err != nil {
-		panic(err)
-	}
-
+func discoverSwarm(cli *client.Client, prometheusContainerID string, outputFile string, discoveryType string) {
 	services, err := cli.ServiceList(context.Background(), types.ServiceListOptions{})
 	if err != nil {
 		panic(err)
@@ -301,9 +289,9 @@ func discoverSwarm(prometheusContainerID string, outputFile string, discoveryTyp
 	}
 
 	if options.autoconnect {
-		err = connectNetworks(allNetworks, prometheusContainerID)
+		err = connectNetworks(cli, allNetworks, prometheusContainerID)
 		if err != nil {
-			logger.Error("Could not connect container ,", prometheusContainerID, ": ", err)
+			logger.Error("Could not connect container ID ", prometheusContainerID, ": ", err)
 		}
 	}
 
@@ -311,6 +299,10 @@ func discoverSwarm(prometheusContainerID string, outputFile string, discoveryTyp
 }
 
 func discoveryProcess(cmd *cobra.Command, args []string) {
+	dockerClient, err := client.NewEnvClient()
+	if err != nil {
+		panic(err)
+	}
 
 	level, err := logrus.ParseLevel(options.logLevel)
 	if err != nil {
@@ -332,9 +324,9 @@ func discoveryProcess(cmd *cobra.Command, args []string) {
 			continue
 		}
 
-		discoverSwarm(prometheusContainerID, options.output, options.discovery)
+		discoverSwarm(dockerClient, prometheusContainerID, options.output, options.discovery)
 		if options.clean {
-			cleanNetworks(prometheusContainerID)
+			cleanNetworks(dockerClient, prometheusContainerID)
 		}
 	}
 }
@@ -366,7 +358,7 @@ func main() {
 	cmdDiscover.Flags().StringVarP(&options.discovery, "discovery", "d", "implicit", "Discovery time: implicit or explicit. Implicit scans all the services found while explicit scans only labeled services.")
 	cmdDiscover.Flags().BoolVarP(&options.autoconnect, "autoconnect", "a", true, "If true, the service will try to connect Prometheus container to the required networks automatically. If not, you should do this manually.")
 
-	var rootCmd = &cobra.Command{Use: "promswarm"}
+	var rootCmd = &cobra.Command{Use: "prometheus-swarm-discovery"}
 	rootCmd.AddCommand(cmdDiscover)
 	rootCmd.Execute()
 
