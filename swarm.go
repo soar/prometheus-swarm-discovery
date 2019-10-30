@@ -299,9 +299,14 @@ func discoverSwarm(cli *client.Client, prometheusContainerID string, outputFile 
 }
 
 func discoveryProcess(cmd *cobra.Command, args []string) {
-	dockerClient, err := client.NewEnvClient()
+	dockerClient, err := client.NewClientWithOpts(client.FromEnv)
 	if err != nil {
 		panic(err)
+	}
+
+	dockerServerVersion, err := dockerClient.ServerVersion(context.Background())
+	if err != nil {
+		logger.Error("Can't get server version: ", err)
 	}
 
 	level, err := logrus.ParseLevel(options.logLevel)
@@ -315,6 +320,7 @@ func discoveryProcess(cmd *cobra.Command, args []string) {
 	}
 
 	logger.Info("Starting service discovery process using Prometheus service [", options.prometheusService, "]")
+	logger.Info("Docker client version: ", dockerClient.ClientVersion(), "; server: ", dockerServerVersion)
 
 	for {
 		time.Sleep(time.Duration(options.discoveryInterval) * time.Second)
