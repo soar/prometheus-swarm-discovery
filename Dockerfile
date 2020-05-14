@@ -1,12 +1,13 @@
-FROM golang:1.7-alpine
+FROM golang:1.13-alpine AS build
 
-RUN mkdir /app
-COPY . /go/src/github.com/weaveworks/prometheus-swarm/
+COPY . /go/src/github.com/soar/prometheus-swarm-discovery/
 
-RUN echo http://dl-cdn.alpinelinux.org/alpine/edge/community >> /etc/apk/repositories
-RUN apk update && apk add glide git
-RUN cd /go/src/github.com/weaveworks/prometheus-swarm/ && glide install
+WORKDIR /go/src/github.com/soar/prometheus-swarm-discovery/
 
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o /app/main /go/src/github.com/weaveworks/prometheus-swarm/swarm.go
+RUN go build
 
-ENTRYPOINT ["/app/main", "discover"]
+FROM golang:1.13-alpine
+
+COPY --from=build /go/src/github.com/soar/prometheus-swarm-discovery/prometheus-swarm-discovery /bin/
+
+ENTRYPOINT ["prometheus-swarm-discovery", "discover"]

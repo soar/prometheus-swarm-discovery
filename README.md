@@ -1,5 +1,7 @@
 # Prometheus-Swarm service discovery
 
+[![Docker Repository on Quay](https://quay.io/repository/soar/prometheus-swarm-discovery/status "Docker Repository on Quay")](https://quay.io/repository/soar/prometheus-swarm-discovery)
+
 This is a POC that demonstrates Prometheus service discovery in Docker Swarm. At the moment, this POC only discovers Swarm services and their respective tasks, without attempting to discover nodes or other Swarm concepts.
 
 ## How it works
@@ -79,7 +81,7 @@ $ ./prometheus-swarm discover --help
 Starts Swarm service discovery
 
 Usage:
-  promswarm discover [flags]
+  prometheus-swarm-discovery discover [flags]
 
 Flags:
   -c, --clean               Disconnects unused networks from the Prometheus container, and deletes them. (default true)
